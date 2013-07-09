@@ -25,6 +25,7 @@ type RestMQSettings struct {
 	HTTPServer WebServerSettings `toml:"http"`
 	WSServer   WebServerSettings `toml:websocket`
 	Redis      RedisSettings     `toml:"redis"`
+	Log        LogSettings       `toml:"log"`
 }
 
 type WebServerSettings struct {
@@ -45,6 +46,10 @@ type RedisSettings struct {
 
 func (s *RedisSettings) Addr() string {
 	return s.Host + ":" + strconv.Itoa(s.Port)
+}
+
+type LogSettings struct {
+	File string
 }
 
 func init() {
