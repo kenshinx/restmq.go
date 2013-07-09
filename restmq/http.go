@@ -24,6 +24,7 @@ type RestQueueHandler struct {
 
 func (h *RestQueueHandler) Queue(name string) (queue *redisq.RedisQueue) {
 	queue = redisq.NewRedisQueue(h.redis, name)
+	queue.SetLogger(h.logger)
 	return
 }
 
