@@ -40,19 +40,17 @@ func (h *RestQueueHandler) List(ctx *web.Context) {
 func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		ctx.NotFound(QueueNotFound)
+		h.writeError(ctx, 404, QueueNotFound)
 		return
 	}
 	if queue.Empty() {
-		ctx.ResponseWriter.WriteHeader(400)
-		ctx.WriteString(EmptyQueue)
+		h.writeError(ctx, 400, EmptyQueue)
 		return
 	}
 	mesg, err := queue.GetNoWait()
 	if err != nil {
-		ctx.Abort(500, GetError)
+		h.writeError(ctx, 500, GetError)
 		if Settings.Debug {
-			ctx.WriteString("\r\n")
 			debug := fmt.Sprintf("Debug: %s", err)
 			ctx.WriteString(debug)
 		}
@@ -77,15 +75,13 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 		var i interface{}
 		err := json.Unmarshal([]byte(mesg), &i)
 		if err != nil {
-			ctx.ResponseWriter.WriteHeader(400)
-			ctx.WriteString(JsonDecodeError)
+			h.writeError(ctx, 400, JsonDecodeError)
 			return
 		}
 		err = queue.Put(i)
 		if err != nil {
-			ctx.Abort(500, PostError)
+			h.writeError(ctx, 500, PostError)
 			if Settings.Debug {
-				ctx.WriteString("\r\n")
 				debug := fmt.Sprintf("Debug: %s", err)
 				ctx.WriteString(debug)
 			}
@@ -95,8 +91,7 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 		h.logger.Printf("Put message into queue [%s]", val)
 
 	} else {
-		ctx.ResponseWriter.WriteHeader(400)
-		ctx.WriteString(LackPostValue)
+		h.writeError(ctx, 400, LackPostValue)
 
 	}
 
@@ -105,14 +100,13 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		ctx.NotFound(QueueNotFound)
+		h.writeError(ctx, 404, QueueNotFound)
 		return
 	}
 	err := queue.Clear()
 	if err != nil {
-		ctx.Abort(500, ClearError)
+		h.writeError(ctx, 500, ClearError)
 		if Settings.Debug {
-			ctx.WriteString("\r\n")
 			debug := fmt.Sprintf("Debug: %s", err)
 			ctx.WriteString(debug)
 		}
@@ -120,6 +114,12 @@ func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
 		return
 	}
 	h.logger.Printf("Queue [%s] deleted sucess", val)
+}
+
+func (h *RestQueueHandler) writeError(ctx *web.Context, status_code int, errorMesg string) {
+	ctx.ResponseWriter.WriteHeader(status_code)
+	ctx.WriteString(errorMesg)
+	ctx.WriteString("\r\n")
 }
 
 func initLogger(log_file string) (logger *log.Logger) {
