@@ -40,7 +40,6 @@ func (h *RestQueueHandler) List(ctx *web.Context) {
 func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		fmt.Println(Status.QueueNotFound(val))
 		ctx.NotFound(Status.QueueNotFound(val))
 		return
 	}
@@ -49,20 +48,19 @@ func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 		ctx.WriteString(Status.EmptyQueue(val))
 		return
 	}
-	msg, err := queue.GetNoWait()
+	mesg, err := queue.GetNoWait()
 	if err != nil {
-		ctx.ResponseWriter.WriteHeader(400)
-		ctx.WriteString(Status.BadRequest(val))
+		ctx.Abort(500, Status.GetError(val))
 		if Settings.Debug {
-			ctx.WriteString("<br></br>")
+			ctx.WriteString("\r\n")
 			debug := fmt.Sprintf("Debug: %s", err)
 			ctx.WriteString(debug)
 		}
 		h.logger.Printf("Dequeue from <%s> Error:%s", val, err)
 		return
 	}
-	resp, _ := json.Marshal(msg)
-	//msg.(type) is iteface{}
+	resp, _ := json.Marshal(mesg)
+	//mesg.(type) is iteface{}
 	//resp.(type) is []byte
 
 	ctx.SetHeader("Content-Type", "application/json; charset=UTF-8", true)
@@ -71,8 +69,36 @@ func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 }
 
 func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
-	h.logger.Println(ctx)
-	h.logger.Println(val)
+	queue := h.Queue(val)
+	if !queue.Exists() {
+		h.logger.Printf("Queue [%s] didn't existst, will be ceate.", val)
+	}
+	if mesg, ok := ctx.Params["value"]; ok {
+		var i interface{}
+		err := json.Unmarshal([]byte(mesg), &i)
+		if err != nil {
+			ctx.ResponseWriter.WriteHeader(400)
+			ctx.WriteString(Status.JsonDecodeError())
+			return
+		}
+		err = queue.Put(i)
+		if err != nil {
+			ctx.Abort(500, Status.PostError())
+			if Settings.Debug {
+				ctx.WriteString("\r\n")
+				debug := fmt.Sprintf("Debug: %s", err)
+				ctx.WriteString(debug)
+			}
+			h.logger.Printf("Post message into [%s] Error:%s", val, err)
+		}
+		h.logger.Printf("put message into queue [%s]", val)
+
+	} else {
+		ctx.ResponseWriter.WriteHeader(400)
+		ctx.WriteString(Status.LackPostValue())
+
+	}
+
 }
 
 func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
