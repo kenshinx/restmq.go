@@ -10,11 +10,16 @@ type QueueStatus struct {
 }
 
 func (s QueueStatus) QueueNotFound(queue string) (mesg string) {
-	mesg = fmt.Sprintf("Queue <%s> not found", queue)
+	mesg = fmt.Sprintf("Queue [%s] not found", queue)
+	return
+}
+
+func (s QueueStatus) EmptyQueue(queue string) (mesg string) {
+	mesg = fmt.Sprintf("Queue [%s] is Empty", queue)
 	return
 }
 
 func (s QueueStatus) BadRequest(queue string) (mesg string) {
-	mesg = fmt.Sprintf("Request queue <%s> failed", queue)
+	mesg = fmt.Sprintf("Request queue [%s] failed", queue)
 	return
 }

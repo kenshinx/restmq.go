@@ -28,26 +28,43 @@ func (h *RestQueueHandler) Queue(name string) (queue *redisq.RedisQueue) {
 	return
 }
 
+func (h *RestQueueHandler) List(ctx *web.Context) {
+
+	var keys []string
+	keys, _ = h.redis.Keys("*")
+	resp, _ := json.Marshal(keys)
+	ctx.SetHeader("Content-Type", "application/json; charset=UTF-8", true)
+	ctx.WriteString(string(resp))
+}
+
 func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 	queue := h.Queue(val)
-	if queue.Empty() {
+	if !queue.Exists() {
+		fmt.Println(Status.QueueNotFound(val))
 		ctx.NotFound(Status.QueueNotFound(val))
 		return
 	}
+	if queue.Empty() {
+		ctx.ResponseWriter.WriteHeader(400)
+		ctx.WriteString(Status.EmptyQueue(val))
+		return
+	}
 	msg, err := queue.GetNoWait()
-	resp, err := json.Marshal(msg)
-	//msg.(type) is iteface{}
-	//resp.(type) is []byte
 	if err != nil {
 		ctx.ResponseWriter.WriteHeader(400)
 		ctx.WriteString(Status.BadRequest(val))
 		if Settings.Debug {
+			ctx.WriteString("<br></br>")
 			debug := fmt.Sprintf("Debug: %s", err)
 			ctx.WriteString(debug)
 		}
-		h.logger.Fatalf("Dequeue from <%s> Error:%s", val, err)
+		h.logger.Printf("Dequeue from <%s> Error:%s", val, err)
 		return
 	}
+	resp, _ := json.Marshal(msg)
+	//msg.(type) is iteface{}
+	//resp.(type) is []byte
+
 	ctx.SetHeader("Content-Type", "application/json; charset=UTF-8", true)
 	ctx.WriteString(string(resp))
 
@@ -93,6 +110,7 @@ func (s HTTPServer) Run() {
 	)
 
 	web.Get("/", indexHandler.Get)
+	web.Get("/q", queueHandler.List)
 	web.Get("/q/(.+)", queueHandler.Get)
 	web.Post("/q/(.+)", queueHandler.Put)
 	web.Delete("/q/(.+)", queueHandler.Clear)
