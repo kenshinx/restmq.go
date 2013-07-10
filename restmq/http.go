@@ -40,17 +40,17 @@ func (h *RestQueueHandler) List(ctx *web.Context) {
 func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		ctx.NotFound(Status.QueueNotFound(val))
+		ctx.NotFound(QueueNotFound)
 		return
 	}
 	if queue.Empty() {
 		ctx.ResponseWriter.WriteHeader(400)
-		ctx.WriteString(Status.EmptyQueue(val))
+		ctx.WriteString(EmptyQueue)
 		return
 	}
 	mesg, err := queue.GetNoWait()
 	if err != nil {
-		ctx.Abort(500, Status.GetError(val))
+		ctx.Abort(500, GetError)
 		if Settings.Debug {
 			ctx.WriteString("\r\n")
 			debug := fmt.Sprintf("Debug: %s", err)
@@ -71,19 +71,19 @@ func (h *RestQueueHandler) Get(ctx *web.Context, val string) {
 func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		h.logger.Printf("Queue [%s] didn't existst, will be ceate.", val)
+		h.logger.Printf("Queue [%s] didn't existst, will be ceated.", val)
 	}
 	if mesg, ok := ctx.Params["value"]; ok {
 		var i interface{}
 		err := json.Unmarshal([]byte(mesg), &i)
 		if err != nil {
 			ctx.ResponseWriter.WriteHeader(400)
-			ctx.WriteString(Status.JsonDecodeError())
+			ctx.WriteString(JsonDecodeError)
 			return
 		}
 		err = queue.Put(i)
 		if err != nil {
-			ctx.Abort(500, Status.PostError())
+			ctx.Abort(500, PostError)
 			if Settings.Debug {
 				ctx.WriteString("\r\n")
 				debug := fmt.Sprintf("Debug: %s", err)
@@ -96,7 +96,7 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 
 	} else {
 		ctx.ResponseWriter.WriteHeader(400)
-		ctx.WriteString(Status.LackPostValue())
+		ctx.WriteString(LackPostValue)
 
 	}
 
@@ -105,12 +105,12 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
 	queue := h.Queue(val)
 	if !queue.Exists() {
-		ctx.NotFound(Status.QueueNotFound(val))
+		ctx.NotFound(QueueNotFound)
 		return
 	}
 	err := queue.Clear()
 	if err != nil {
-		ctx.Abort(500, Status.ClearError())
+		ctx.Abort(500, ClearError)
 		if Settings.Debug {
 			ctx.WriteString("\r\n")
 			debug := fmt.Sprintf("Debug: %s", err)

@@ -13,6 +13,12 @@ This repo is rewritten by Go. and there is a completely implements with python:
 
 ### Restful API
 
+* List Queues 
+
+```
+curl -i -X GET http://localhost:8000/q
+```
+
 * Get Message 
 
 ```
@@ -27,13 +33,14 @@ curl -i -X POST http://localhost:8000/q/kenshin -d 'value="xx"'
 curl -i -X POST http://localhost:8000/q/kenshin -d 'value=1'
 ```
 
-1. The post params must conatin value field.
-2. The message should be json encode
+The post message should be json encode
 
 * Delete Queue
 
 ```
 curl -i -X DELETE http://localhost:8000/q/kenshin
 ```
+
+
 
 
