@@ -90,8 +90,9 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 				ctx.WriteString(debug)
 			}
 			h.logger.Printf("Post message into [%s] Error:%s", val, err)
+			return
 		}
-		h.logger.Printf("put message into queue [%s]", val)
+		h.logger.Printf("Put message into queue [%s]", val)
 
 	} else {
 		ctx.ResponseWriter.WriteHeader(400)
@@ -102,8 +103,23 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 }
 
 func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
-	h.logger.Println(ctx)
-	h.logger.Println(val)
+	queue := h.Queue(val)
+	if !queue.Exists() {
+		ctx.NotFound(Status.QueueNotFound(val))
+		return
+	}
+	err := queue.Clear()
+	if err != nil {
+		ctx.Abort(500, Status.ClearError())
+		if Settings.Debug {
+			ctx.WriteString("\r\n")
+			debug := fmt.Sprintf("Debug: %s", err)
+			ctx.WriteString(debug)
+		}
+		h.logger.Printf("Delete queue [%s] Error:%s", val, err)
+		return
+	}
+	h.logger.Printf("Queue [%s] deleted sucess", val)
 }
 
 func initLogger(log_file string) (logger *log.Logger) {

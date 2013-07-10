@@ -35,3 +35,7 @@ func (s QueueStatus) JsonDecodeError() (mesg string) {
 func (s QueueStatus) PostError() (mesg string) {
 	return "Post message into queue failed\n"
 }
+
+func (s QueueStatus) ClearError() (mesg string) {
+	return "Delete Queue failed\n"
+}
