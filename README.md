@@ -5,9 +5,9 @@ Multiple-type data manipulation ways supported:
 
 * HTTP GET/POST/PUT/DELETE
 * WebSocket
-* Comet
+* ~~Comet~~  not yet
 
-This repo is rewritten by Go. and there is a completely implements with python:
+This repo is rewritten by Go. and there is a more completely implements with python:
   [https://github.com/gleicon/restmq](https://github.com/gleicon/restmq)
 
 
@@ -40,6 +40,37 @@ The post message should be json encode
 ```
 curl -i -X DELETE http://localhost:8000/q/kenshin
 ```
+
+### WebSocket Consumer
+
+*The Consumer Url*
+
+> http://localhost:8000/ws/kenshin
+
+
+## Dependence
+
+* [github.com/kenshinx/redisq](https://github.com/kenshinx/redisq)
+* [github.com/hoisie/redis](https://github.com/hoisie/redis)
+* [github.com/hoisie/web](https://github.com/hoisie/web)
+* [github.com/garyburd/go-websocket/websocket](https://github.com/garyburd/go-websocket/websocket)
+
+
+##TODO
+* Control protocol
+* Comet consumer
+* Web dashboard
+
+
+
+
+
+
+
+
+
+
+
 
 
 
