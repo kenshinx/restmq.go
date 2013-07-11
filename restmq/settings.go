@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"log"
 	"os"
 	"strconv"
 )
@@ -12,12 +11,6 @@ import (
 var (
 	Settings RestMQSettings
 )
-
-func Debug(format string, items ...interface{}) {
-	if Settings.Debug {
-		log.Printf(format, items...)
-	}
-}
 
 type RestMQSettings struct {
 	Version    string

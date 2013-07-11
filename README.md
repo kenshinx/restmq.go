@@ -45,7 +45,9 @@ curl -i -X DELETE http://localhost:8000/q/kenshin
 
 *The Consumer Url*
 
-> http://localhost:8000/ws/kenshin
+```
+http://localhost:8000/ws/kenshin
+```
 
 
 ## Dependence
@@ -54,6 +56,7 @@ curl -i -X DELETE http://localhost:8000/q/kenshin
 * [github.com/hoisie/redis](https://github.com/hoisie/redis)
 * [github.com/hoisie/web](https://github.com/hoisie/web)
 * [github.com/garyburd/go-websocket/websocket](https://github.com/garyburd/go-websocket/websocket)
+* [github.com/BurntSushi/toml](https://github.com/BurntSushi/toml)
 
 
 ##TODO
