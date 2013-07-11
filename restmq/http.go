@@ -10,7 +10,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	// "time"
+	"time"
 )
 
 type IndexHandler struct {
@@ -82,7 +82,7 @@ func (h *RestQueueHandler) Put(ctx *web.Context, val string) {
 				debug := fmt.Sprintf("Debug: %s", err)
 				ctx.WriteString(debug)
 			}
-			h.logger.Printf("Post message into [%s] Error:%s", val, err)
+			h.logger.Printf("Put message into [%s] Error:%s", val, err)
 			return
 		}
 		h.logger.Printf("Put message into queue [%s]", val)
@@ -113,6 +113,23 @@ func (h *RestQueueHandler) Clear(ctx *web.Context, val string) {
 	h.logger.Printf("Queue [%s] deleted sucess", val)
 }
 
+const (
+	// Time allowed to write a message to the client.
+	writeWait = 10 * time.Second
+
+	// Time allowed to read the next message from the client.
+	readWait = 60 * time.Second
+
+	// Send pings to client with this period. Must be less than readWait.
+	pingPeriod = (readWait * 9) / 10
+
+	//Consume wait should bigger than ping period
+	consumeWait = pingPeriod * 2
+
+	// Maximum message size allowed from client.
+	maxMessageSize = 512
+)
+
 type WSQueueHandler struct {
 	redis  *redis.Client
 	logger *log.Logger
@@ -124,15 +141,21 @@ func (wsh *WSQueueHandler) Consumer(ctx *web.Context, val string) {
 	if err != nil {
 		writeError(ctx, 400, WebSocketConnError)
 	}
-	c := WebSocketConn{ws}
+
 	queue := redisq.NewRedisQueue(wsh.redis, val)
 	if !queue.Exists() {
-		c.write(websocket.OpText, []byte(QueueNotFound))
-		c.write(websocket.OpClose, []byte{})
+		ws.WriteMessage(websocket.OpText, []byte(QueueNotFound))
+		ws.WriteMessage(websocket.OpClose, []byte{})
 		return
 	}
+
 	wsh.logger.Printf("Get websocket connection from %s", ws.RemoteAddr())
-	// wsh.logger.Printf("", ...)
+	wsh.logger.Printf("Begin subscribe queue [%s]", val)
+
+	c := WebSocketConn{ws, queue, wsh.logger}
+	go c.writePump()
+	// c.readPump()
+
 }
 
 func (wsh *WSQueueHandler) handshake(r *http.Request, w http.ResponseWriter) (ws *websocket.Conn, err error) {
@@ -141,12 +164,46 @@ func (wsh *WSQueueHandler) handshake(r *http.Request, w http.ResponseWriter) (ws
 }
 
 type WebSocketConn struct {
-	ws *websocket.Conn
+	ws     *websocket.Conn
+	rq     *redisq.RedisQueue
+	logger *log.Logger
 }
 
 func (c *WebSocketConn) write(opCode int, payload []byte) error {
-	// c.ws.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
 	return c.ws.WriteMessage(opCode, payload)
+}
+
+func (c *WebSocketConn) writePump() {
+	ticker := time.NewTicker(pingPeriod)
+	defer func() {
+		ticker.Stop()
+		c.ws.Close()
+	}()
+
+	var mesgs = make(chan interface{})
+	c.rq.Consume(true, uint(consumeWait.Seconds()), mesgs)
+	for {
+		select {
+		case v, ok := <-mesgs:
+			if !ok {
+				c.write(websocket.OpText, []byte(ConsumeError))
+				c.write(websocket.OpClose, []byte{})
+				c.logger.Printf("Consumer from %s failed: %s", c.rq)
+				return
+			}
+			mesg, _ := json.Marshal(v)
+			if err := c.write(websocket.OpText, mesg); err != nil {
+				return
+			}
+		case <-ticker.C:
+			if err := c.write(websocket.OpPing, []byte{}); err != nil {
+				return
+			}
+
+		}
+	}
+
 }
 
 func writeError(ctx *web.Context, statusCode int, errorMesg string) {

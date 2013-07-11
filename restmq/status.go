@@ -9,4 +9,5 @@ const (
 	PostError          = "Post message into queue failed"
 	ClearError         = "Delete Queue failed"
 	WebSocketConnError = "must be a websocket handshake"
+	ConsumeError       = "Consume from queue failed"
 )
