@@ -155,7 +155,7 @@ func (wsh *WSQueueHandler) Consumer(ctx *web.Context, val string) {
 
 	c := WebSocketConn{ws, queue, wsh.logger}
 	go c.writePump()
-	go c.readPump()
+	// go c.readPump()
 
 }
 

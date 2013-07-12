@@ -2,16 +2,30 @@
 <meta charset="utf-8" />
 <title>RestMQ Websocket Consumer Test</title>
 
+<style>
+#form {
+    padding: 0 0.5em 0 0.5em;
+    margin: 0;
+    position: absolute;
+    bottom: 1em;
+    left: 0px;
+    width: 40%;
+    overflow: hidden;
+}
+</style>
+
 <script language="javascript" type="text/javascript">  
-	var queue = "kenshin"
-	var wsUri = "ws://localhost:8000/ws/"+queue; 
 	var output;  
+
 	function init() { 
 		output = document.getElementById("output");
-		testWebSocket(); 
+		// testWebSocket(); 
 	}  
-	function testWebSocket() {
+
+	function testWebSocket(queue) {
+		var wsUri = "ws://localhost:8000/ws/"+queue
 		websocket = new WebSocket(wsUri);
+		clear()
 		websocket.onopen = function(evt) { onOpen(evt) }; 
 		websocket.onclose = function(evt) { onClose(evt) }; 
 		websocket.onmessage = function(evt) { onMessage(evt) }; 
@@ -46,9 +60,26 @@
 			output.appendChild(pre); 
 		}  
 
+		function subscribe(){
+			queue = document.getElementById("queue").value;
+			testWebSocket(queue);
+			
+		}
+
+		function clear(){
+			output.innerHTML="";
+		}
+
 		window.addEventListener("load", init, false);  
 </script>
 
 
 <div id="output"></div>
+<form id="form" onsubmit=subscribe() action="#">
+	<label>Input the queue to subscribe:</label>
+	<br></br>
+	<input type="text" id="queue" size="32"/>
+    <input type="submit" value="Subscribe" />
+    
+</form>
 </html>
