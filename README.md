@@ -1,7 +1,7 @@
 # RestMQ
 
 RestMQ is a message queue based on redis.
-Multiple-type data manipulation ways supported: 
+Support Multiple-type data manipulation ways. 
 
 * HTTP GET/POST/PUT/DELETE
 * WebSocket
@@ -9,6 +9,23 @@ Multiple-type data manipulation ways supported:
 
 This repo is rewritten by Go. and there is a more completely implements with python:
   [https://github.com/gleicon/restmq](https://github.com/gleicon/restmq)
+
+
+
+### Install & Run
+
+```
+$ go get github.com/kenshinx/restmq.go
+$ cd $GOPATH/src/github.com/kenshinx/restmq.go
+$ go run restmq.go
+```
+
+### Configuration
+
+All Configuration in the restmq.conf file.  This config file support Toml rule.  
+
+More about Toml :[https://github.com/mojombo/toml](https://github.com/mojombo/toml)
+
 
 
 ### Restful API
@@ -48,6 +65,8 @@ curl -i -X DELETE http://localhost:8000/q/kenshin
 ```
 http://localhost:8000/ws/kenshin
 ```
+
+ The client demo can reference `websocket.html`
 
 
 ## Dependence
