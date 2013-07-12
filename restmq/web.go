@@ -7,6 +7,7 @@ import (
 	"github.com/hoisie/redis"
 	"github.com/hoisie/web"
 	"github.com/kenshinx/redisq"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -150,11 +151,11 @@ func (wsh *WSQueueHandler) Consumer(ctx *web.Context, val string) {
 	}
 
 	wsh.logger.Printf("Get websocket connection from %s", ws.RemoteAddr())
-	wsh.logger.Printf("Begin subscribe queue [%s]", val)
+	wsh.logger.Printf("<%s> begin subscribe queue [%s]", ws.RemoteAddr(), val)
 
 	c := WebSocketConn{ws, queue, wsh.logger}
 	go c.writePump()
-	// c.readPump()
+	go c.readPump()
 
 }
 
@@ -189,7 +190,7 @@ func (c *WebSocketConn) writePump() {
 			if !ok {
 				c.write(websocket.OpText, []byte(ConsumeError))
 				c.write(websocket.OpClose, []byte{})
-				c.logger.Printf("Consumer from %s failed: %s", c.rq)
+				c.logger.Printf("Consumer from %s failed", c.rq)
 				return
 			}
 			mesg, _ := json.Marshal(v)
@@ -202,6 +203,35 @@ func (c *WebSocketConn) writePump() {
 			}
 
 		}
+	}
+
+}
+
+func (c *WebSocketConn) readPump() {
+	defer func() {
+		c.ws.Close()
+	}()
+	c.ws.SetReadLimit(maxMessageSize)
+	c.ws.SetReadDeadline(time.Now().Add(readWait))
+
+	for {
+		op, r, err := c.ws.NextReader()
+		if err != nil {
+			break
+		}
+		switch op {
+		case websocket.OpPong:
+			c.ws.SetReadDeadline(time.Now().Add(readWait))
+			c.logger.Printf("Receive pong from :%s", c.ws.RemoteAddr())
+		case websocket.OpText:
+			message, err := ioutil.ReadAll(r)
+			if err != nil {
+				break
+			}
+			c.logger.Printf("Receive message from :%s", c.ws.RemoteAddr())
+			c.logger.Printf("Messages :%s", string(message))
+		}
+
 	}
 
 }
