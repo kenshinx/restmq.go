@@ -2,6 +2,7 @@ package restmq
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/garyburd/go-websocket/websocket"
 	"github.com/hoisie/redis"
@@ -261,7 +262,7 @@ var Settings RestMQSettings
 type HTTPServer struct {
 }
 
-func (s HTTPServer) Run() {
+func (s HTTPServer) Run(proto string) {
 
 	logger := initLogger(Settings.Log.File)
 	redis := &redis.Client{Addr: Settings.Redis.Addr(),
@@ -281,5 +282,19 @@ func (s HTTPServer) Run() {
 	web.Delete("/q/(.+)", restHandler.Clear)
 	web.Get("/ws/(.+)", wsHandler.Consumer)
 	web.SetLogger(logger)
-	web.Run(Settings.HTTPServer.Addr())
+
+	addr := Settings.HTTPServer.Addr()
+
+	switch proto {
+	case "http":
+		web.Run(addr)
+	case "fcgi":
+		web.RunFcgi(addr)
+	case "scgi":
+		web.RunScgi(addr)
+	default:
+		flag.Usage()
+		os.Exit(1)
+	}
+
 }

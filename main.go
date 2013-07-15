@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	Settings restmq.RestMQSettings
+	Settings   restmq.RestMQSettings
+	configFile string
+	protocol   string
 )
 
 func main() {
@@ -17,7 +19,7 @@ func main() {
 
 	restmq.Settings = Settings
 	httpServer := restmq.HTTPServer{}
-	go httpServer.Run()
+	go httpServer.Run(protocol)
 
 	<-make(chan bool)
 
@@ -28,6 +30,7 @@ func init() {
 	var configFile string
 
 	flag.StringVar(&configFile, "c", "restmq.conf", "Look for restmq toml-formatting config file in this directory")
+	flag.StringVar(&protocol, "p", "http", "The webserver protocol,usage: {http|fcgi|scgi}")
 	flag.Parse()
 
 	if _, err := toml.DecodeFile(configFile, &Settings); err != nil {
