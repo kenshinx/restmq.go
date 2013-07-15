@@ -17,7 +17,7 @@ This repo is rewritten by Go. and there is a more completely implements with pyt
 ```
 $ go get github.com/kenshinx/restmq.go
 $ cd $GOPATH/src/github.com/kenshinx/restmq.go
-$ go run restmq.go
+$ go run main.go
 ```
 
 ### Configuration

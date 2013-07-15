@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"restmq.go/restmq"
+	"github.com/kenshinx/restmq.go/restmq"
 )
 
 var settings = restmq.Settings
