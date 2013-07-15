@@ -1,15 +1,7 @@
 package restmq
 
 import (
-	"flag"
-	"fmt"
-	"github.com/BurntSushi/toml"
-	"os"
 	"strconv"
-)
-
-var (
-	Settings RestMQSettings
 )
 
 type RestMQSettings struct {
@@ -43,19 +35,4 @@ func (s *RedisSettings) Addr() string {
 
 type LogSettings struct {
 	File string
-}
-
-func init() {
-
-	var configFile string
-
-	flag.StringVar(&configFile, "c", "restmq.conf", "Look for restmq toml-formatting config file in this directory")
-	flag.Parse()
-
-	if _, err := toml.DecodeFile(configFile, &Settings); err != nil {
-		fmt.Printf("%s is not a valid toml config file\n", configFile)
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 }

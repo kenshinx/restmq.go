@@ -256,6 +256,8 @@ func initLogger(log_file string) (logger *log.Logger) {
 
 }
 
+var Settings RestMQSettings
+
 type HTTPServer struct {
 }
 
