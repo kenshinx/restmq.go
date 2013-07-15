@@ -17,7 +17,7 @@ This repo is rewritten by Go. and there is a more completely implements with pyt
 ```
 $ go get github.com/kenshinx/restmq.go
 $ cd $GOPATH/src/github.com/kenshinx/restmq.go
-$ go run main.go
+$ go run main.go -c restmq.conf
 ```
 
 ### Configuration
@@ -39,7 +39,7 @@ curl -i -X GET http://localhost:8000/q
 * Get Message 
 
 ```
-curl -i  http://localhost:8000/q/redisq:kenshix
+curl -i  http://localhost:8000/q/kenshin
 ```
 
 * Put Message 
@@ -50,7 +50,7 @@ curl -i -X POST http://localhost:8000/q/kenshin -d 'value="xx"'
 curl -i -X POST http://localhost:8000/q/kenshin -d 'value=1'
 ```
 
-The post message should be json encode
+The post message should be json encoded
 
 * Delete Queue
 
