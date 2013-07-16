@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/kenshinx/restmq.go/restmq"
 	"os"
-	"restmq.go/restmq"
 )
 
 var (
