@@ -8,7 +8,6 @@ type RestMQSettings struct {
 	Version    string
 	Debug      bool
 	HTTPServer WebServerSettings `toml:"http"`
-	WSServer   WebServerSettings `toml:websocket`
 	Redis      RedisSettings     `toml:"redis"`
 	Log        LogSettings       `toml:"log"`
 }
